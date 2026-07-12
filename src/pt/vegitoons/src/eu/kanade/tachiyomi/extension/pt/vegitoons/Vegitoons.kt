@@ -4,6 +4,7 @@ import eu.kanade.tachiyomi.multisrc.greenshit.GreenShit
 import eu.kanade.tachiyomi.multisrc.greenshit.GreenShitMangaDto
 import eu.kanade.tachiyomi.multisrc.greenshit.toSManga
 import eu.kanade.tachiyomi.network.GET
+import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.SManga
 import keiyoushi.annotation.Source
@@ -36,12 +37,13 @@ abstract class Vegitoons : GreenShit() {
                 is GeneroFilter -> url.addQueryParameterIfNotEmpty("gen_id", filter.selected)
                 is FormatoFilter -> url.addQueryParameterIfNotEmpty("formt_id", filter.selected)
                 is StatusFilter -> url.addQueryParameterIfNotEmpty("stt_id", filter.selected)
-                is TagsFilter ->
-                    filter.state
-                        .filter { it.state }
-                        .joinToString(",") { it.value }
-                        .takeIf { it.isNotEmpty() }
-                        ?.let { url.addQueryParameter("tag_ids", it) }
+                is MinChaptersFilter -> filter.state.trim().toIntOrNull()
+                    ?.takeIf { it >= 0 }
+                    ?.let { url.addQueryParameter("min_capitulos", it.toString()) }
+                is TagsFilter -> url.addQueryParameterIfNotEmpty(
+                    "tag_ids",
+                    filter.state.filter { it.state }.joinToString(",") { it.value },
+                )
                 is SortFilter -> getSortFilterOptions()[filter.state].second
                     .takeIf { it.isNotEmpty() }
                     ?.split(",", limit = 2)
@@ -56,10 +58,20 @@ abstract class Vegitoons : GreenShit() {
         return GET(url.build(), headers)
     }
 
+    override fun getFilterList() = FilterList(
+        GeneroFilter(getGeneroFilterOptions()),
+        FormatoFilter(getFormatoFilterOptions()),
+        StatusFilter(getStatusFilterOptions()),
+        MinChaptersFilter(),
+        SortFilter(getSortFilterOptions(), getSortFilterDefaultValue()),
+        Filter.Separator(),
+        TagsFilter(getTagsFilterOptions()),
+    )
+
     override fun getGeneroFilterOptions(): Array<Pair<String, String>> = arrayOf(
         Pair("Padrão (sem +18)", defaultGenreId),
         Pair("Conteúdo +18", "5,7,16,18"),
-        Pair("Todos", "1,4,5,6,7,8,16,18"),
+        Pair("Todos", ""),
         Pair("Hentais", "5"),
         Pair("Livres", "1"),
         Pair("Mangás", "8"),
@@ -72,15 +84,14 @@ abstract class Vegitoons : GreenShit() {
 
     override fun getFormatoFilterOptions(): Array<Pair<String, String>> = arrayOf(
         Pair("Todos", ""),
-        Pair("Anime", "7"),
-        Pair("Livre", "22"),
         Pair("Mangá", "3"),
         Pair("Manhua", "2"),
         Pair("Manhwa", "1"),
-        Pair("Nacional", "5"),
         Pair("Novel", "4"),
         Pair("One Shot", "19"),
     )
+
+    override fun getTagsFilterOptions() = super.getTagsFilterOptions().sortedBy { it.name }
 
     override fun getSortFilterOptions(): Array<Pair<String, String>> = arrayOf(
         Pair("Padrão", ""),
@@ -107,4 +118,6 @@ abstract class Vegitoons : GreenShit() {
     }
 
     override fun getMangaUrl(manga: SManga): String = "$baseUrl${manga.url}"
+
+    private class MinChaptersFilter : Filter.Text("Mínimo de capítulos")
 }
