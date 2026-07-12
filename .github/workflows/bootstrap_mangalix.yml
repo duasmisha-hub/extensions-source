@@ -41,22 +41,6 @@ jobs:
           from pathlib import Path
 
           files = {
-              ".github/workflows/build_mangalix.yml": (
-                  "bmFtZTogQnVpbGQgTWFuZ2FMaXgKCm9uOgogIHdvcmtmbG93X2Rpc3BhdGNoOgogIHB1c2g6CiAgICBicmFuY2hlczoKICAgICAgLSBtYWluCiAgICBwYXRo"
-                  "czoKICAgICAgLSAnc3JjL2VuL21hbmdhbGl4LyoqJwogICAgICAtICcuZ2l0aHViL3dvcmtmbG93cy9idWlsZF9tYW5nYWxpeC55bWwnCgpwZXJtaXNzaW9u"
-                  "czoKICBjb250ZW50czogcmVhZAoKY29uY3VycmVuY3k6CiAgZ3JvdXA6IGJ1aWxkLW1hbmdhbGl4CiAgY2FuY2VsLWluLXByb2dyZXNzOiB0cnVlCgpqb2Jz"
-                  "OgogIGJ1aWxkOgogICAgbmFtZTogQnVpbGQgTWFuZ2FMaXggQVBLCiAgICBydW5zLW9uOiB1YnVudHUtbGF0ZXN0CiAgICB0aW1lb3V0LW1pbnV0ZXM6IDMw"
-                  "CiAgICBzdGVwczoKICAgICAgLSBuYW1lOiBDaGVja291dAogICAgICAgIHVzZXM6IGFjdGlvbnMvY2hlY2tvdXRAOWMwOTFiYjIxYjdjMWMxZDE5OTFiYjkw"
-                  "OGQ4OWU0ZTlkZGRmZTNlMCAjIHY3LjAuMAogICAgICAgIHdpdGg6CiAgICAgICAgICBwZXJzaXN0LWNyZWRlbnRpYWxzOiBmYWxzZQoKICAgICAgLSBuYW1l"
-                  "OiBTZXQgdXAgSmF2YQogICAgICAgIHVzZXM6IGFjdGlvbnMvc2V0dXAtamF2YUAxYmNmOWZiMTJjZjRhYTdkMjY2YTkwYWUzOTkzOWU2MTM3MmZlNTIwICMg"
-                  "djUuNC4wCiAgICAgICAgd2l0aDoKICAgICAgICAgIGphdmEtdmVyc2lvbjogMTcKICAgICAgICAgIGRpc3RyaWJ1dGlvbjogdGVtdXJpbgoKICAgICAgLSBu"
-                  "YW1lOiBTZXQgdXAgR3JhZGxlCiAgICAgICAgdXNlczogZ3JhZGxlL2FjdGlvbnMvc2V0dXAtZ3JhZGxlQDA3MjMxOTU4NTY0MDEwNjdmN2EyNzc5MDQ4YjQ5"
-                  "MGFjZTdhNDdkN2MgIyB2NS4wLjIKCiAgICAgIC0gbmFtZTogQ2hlY2sgYW5kIGJ1aWxkCiAgICAgICAgcnVuOiAuL2dyYWRsZXcgOnNyYzplbjptYW5nYWxp"
-                  "eDpzcG90bGVzc0NoZWNrIDpzcmM6ZW46bWFuZ2FsaXg6YXNzZW1ibGVEZWJ1ZwoKICAgICAgLSBuYW1lOiBVcGxvYWQgQVBLCiAgICAgICAgdXNlczogYWN0"
-                  "aW9ucy91cGxvYWQtYXJ0aWZhY3RAMDQzZmI0NmQxYTkzYzc3YWFlNjU2ZTdjMWM2NGE4NzVkMWZjNmEwYSAjIHY3LjAuMQogICAgICAgIHdpdGg6CiAgICAg"
-                  "ICAgICBuYW1lOiBtYW5nYWxpeC1hcGsKICAgICAgICAgIHBhdGg6IHNyYy9lbi9tYW5nYWxpeC9idWlsZC9vdXRwdXRzL2Fway9kZWJ1Zy8qLmFwawogICAg"
-                  "ICAgICAgaWYtbm8tZmlsZXMtZm91bmQ6IGVycm9yCiAgICAgICAgICByZXRlbnRpb24tZGF5czogNwo="
-              ),
               "src/en/mangalix/build.gradle.kts": (
                   "aW1wb3J0IGlvLmdpdGh1Yi5rZWl5b3VzaGkuZ3JhZGxlLmFwaS5Db250ZW50V2FybmluZwoKcGx1Z2lucyB7CiAgICBhbGlhcyhrZWkucGx1Z2lucy5leHRl"
                   "bnNpb24pCn0KCmtlaXlvdXNoaSB7CiAgICBuYW1lID0gIk1hbmdhTGl4IgogICAgdmVyc2lvbkNvZGUgPSAxCiAgICBjb250ZW50V2FybmluZyA9IENvbnRl"
@@ -897,19 +881,9 @@ jobs:
               target.parent.mkdir(parents=True, exist_ok=True)
               target.write_bytes(base64.b64decode(payload))
           PY
-          rm -f .github/workflows/bootstrap_mangalix.yml
 
       - name: Check and build
         run: ./gradlew :src:en:mangalix:spotlessCheck :src:en:mangalix:assembleDebug
-
-      - name: Commit to fork
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- .github/workflows/bootstrap_mangalix.yml .github/workflows/build_mangalix.yml src/en/mangalix
-          git commit -m "MangaLix: Add extension"
-          git push origin HEAD:main
 
       - name: Upload APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -918,3 +892,16 @@ jobs:
           path: src/en/mangalix/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
+
+      - name: Commit source to fork
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- src/en/mangalix
+          if git diff --cached --quiet; then
+            echo "MangaLix source is already current"
+            exit 0
+          fi
+          git commit -m "MangaLix: Add extension"
+          git push origin HEAD:main
