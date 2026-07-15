@@ -58,8 +58,6 @@ abstract class Mangalix : HttpSource() {
     @Volatile
     private var chapterMetadataCache: ChapterMetadataCache? = null
 
-    // ============================== Popular ===============================
-
     override fun fetchPopularManga(page: Int): Observable<MangasPage> = Observable.fromCallable {
         getCatalog().toPage(page)
     }
@@ -68,8 +66,6 @@ abstract class Mangalix : HttpSource() {
 
     override fun popularMangaParse(response: Response): MangasPage = throw UnsupportedOperationException()
 
-    // =============================== Latest ===============================
-
     override fun fetchLatestUpdates(page: Int): Observable<MangasPage> = Observable.fromCallable {
         getCatalog().sortedByDescending(MangaDto::latestTimestamp).toPage(page)
     }
@@ -77,8 +73,6 @@ abstract class Mangalix : HttpSource() {
     override fun latestUpdatesRequest(page: Int): Request = throw UnsupportedOperationException()
 
     override fun latestUpdatesParse(response: Response): MangasPage = throw UnsupportedOperationException()
-
-    // =============================== Search ===============================
 
     override fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> = Observable.fromCallable {
         val statusFilter = filters.filterIsInstance<StatusFilter>().firstOrNull()
@@ -113,8 +107,6 @@ abstract class Mangalix : HttpSource() {
         GenreFilter(),
     )
 
-    // ============================ Manga details ===========================
-
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> = Observable.fromCallable {
         getCatalog().firstOrNull { it.slug == manga.slug() }?.toSManga(baseUrl) ?: manga
     }
@@ -124,8 +116,6 @@ abstract class Mangalix : HttpSource() {
     override fun mangaDetailsParse(response: Response): SManga = throw UnsupportedOperationException()
 
     override fun getMangaUrl(manga: SManga): String = "$baseUrl/manga/${manga.slug()}"
-
-    // =============================== Chapters =============================
 
     override fun fetchChapterList(manga: SManga): Observable<List<SChapter>> = Observable.fromCallable {
         val slug = manga.slug()
@@ -153,8 +143,6 @@ abstract class Mangalix : HttpSource() {
         .query(null)
         .build()
         .toString()
-
-    // ================================ Pages ===============================
 
     override fun fetchPageList(chapter: SChapter): Observable<List<Page>> = Observable.fromCallable {
         val chapterUrl = (baseUrl + chapter.url).toHttpUrl()
@@ -186,8 +174,6 @@ abstract class Mangalix : HttpSource() {
     }
 
     override fun imageUrlParse(response: Response): String = throw UnsupportedOperationException()
-
-    // =============================== Catalog ==============================
 
     @Synchronized
     private fun getCatalog(): List<MangaDto> {
@@ -245,8 +231,6 @@ abstract class Mangalix : HttpSource() {
         val end = (start + PAGE_SIZE).coerceAtMost(size)
         return MangasPage(subList(start, end).map { it.toSManga(baseUrl) }, end < size)
     }
-
-    // =========================== Chapter archive ==========================
 
     @Synchronized
     private fun getArchive(): ByteArray {
@@ -374,8 +358,6 @@ abstract class Mangalix : HttpSource() {
     } else {
         nextString()
     }
-
-    // =============================== Helpers ==============================
 
     private fun SManga.slug(): String = url.substringAfter("/manga/").substringBefore('/')
 
