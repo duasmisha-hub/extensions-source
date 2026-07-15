@@ -1,0 +1,90 @@
+name: Build custom extensions
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/pt/vegitoons/**'
+      - 'lib-multisrc/greenshit/**'
+      - 'src/en/mangalix/**'
+      - 'src/pt/onereader/**'
+      - 'src/pt/mangeek/**'
+      - '.github/workflows/build_custom_extensions.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }} APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Vegitoons
+            slug: vegitoons
+            module: src:pt:vegitoons
+            path: src/pt/vegitoons
+          - name: MangaLix
+            slug: mangalix
+            module: src:en:mangalix
+            path: src/en/mangalix
+          - name: OneReader
+            slug: onereader
+            module: src:pt:onereader
+            path: src/pt/onereader
+          - name: ManGeek
+            slug: mangeek
+            module: src:pt:mangeek
+            path: src/pt/mangeek
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c
+        with:
+          cache-read-only: true
+
+      - name: Prepare signing key
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: |
+          if [ -n "$SIGNING_KEY" ]; then
+            printf '%s' "$SIGNING_KEY" | base64 -d > signingkey.jks
+          fi
+
+      - name: Check and build
+        env:
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew :${{ matrix.module }}:spotlessCheck :${{ matrix.module }}:assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ${{ matrix.slug }}-release-apk
+          path: ${{ matrix.path }}/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Clean up signing key
+        if: always()
+        run: rm -f signingkey.jks

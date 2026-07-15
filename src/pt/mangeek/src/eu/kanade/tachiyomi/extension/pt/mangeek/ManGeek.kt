@@ -35,10 +35,20 @@ abstract class ManGeek : HttpSource() {
     private val apiUrl = "http://geekstations.com.br/api/v2/pt".toHttpUrl()
 
     override fun popularMangaRequest(page: Int): Request = GET(signedUrl("home"), headers)
+        .newBuilder()
+        .header(PAGE_HEADER, page.coerceAtLeast(1).toString())
+        .build()
 
     override fun popularMangaParse(response: Response): MangasPage {
-        val mangas = response.parseAs<ManGeekHomeDto>().tops.map { it.toSManga() }
-        return MangasPage(mangas, false)
+        val mangas = response.parseAs<ManGeekHomeDto>().catalogMangas()
+        val page = response.request.header(PAGE_HEADER)?.toIntOrNull()?.coerceAtLeast(1) ?: 1
+        val start = (page - 1) * CATALOG_PAGE_SIZE
+        val pageMangas = mangas.drop(start).take(CATALOG_PAGE_SIZE)
+
+        return MangasPage(
+            pageMangas.map { it.toSManga() },
+            start + pageMangas.size < mangas.size,
+        )
     }
 
     override fun latestUpdatesRequest(page: Int): Request = GET(signedUrl("home"), headers)
@@ -210,6 +220,7 @@ abstract class ManGeek : HttpSource() {
         private const val SEARCH_MODE_HOME = "home"
         private const val SEARCH_MODE_DISCOVER = "discover"
         private const val SEARCH_MODE_QUERY = "query"
+        private const val CATALOG_PAGE_SIZE = 24
         private const val SEARCH_PAGE_SIZE = 24
     }
 }

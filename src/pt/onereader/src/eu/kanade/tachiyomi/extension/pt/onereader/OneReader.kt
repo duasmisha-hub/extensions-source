@@ -32,12 +32,16 @@ abstract class OneReader : HttpSource() {
         .set("Referer", "$baseUrl/")
         .set("User-Agent", BROWSER_USER_AGENT)
 
-    override fun popularMangaRequest(page: Int): Request = GET("$apiUrl/api/mangas/trending-weekly", headers)
-
-    override fun popularMangaParse(response: Response): MangasPage = MangasPage(
-        response.parseAs<List<MangaDto>>().map(MangaDto::toSManga),
-        false,
+    override fun popularMangaRequest(page: Int): Request = searchRequest(
+        page = page,
+        query = "",
+        order = "az",
+        genre = "",
+        type = "",
+        status = "",
     )
+
+    override fun popularMangaParse(response: Response): MangasPage = searchMangaParse(response)
 
     override fun latestUpdatesRequest(page: Int): Request = searchRequest(
         page = page,
